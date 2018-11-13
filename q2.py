@@ -68,7 +68,7 @@ def get_transition_matrices():
     return [TL, TD, TR, TU]
 
 def get_true_action(p, action):
-    action_space = [0, 1, 2, 3]
+    action_space = list(range(4))
     if random.random() < p:
         return action
     else:
@@ -103,21 +103,23 @@ def step(state, action, p, tms):
 
     return next_state, reward, done
 
+def init_state():
+    non_terminal_states = list(range(11))
+    non_terminal_states.remove(2)
+    non_terminal_states.remove(10)
+    return random.choice(non_terminal_states)
+
 def learn(Q, tms, alpha, gamma, p, nb_episodes):
     print('Running the Q-Learning Algorithm for {} times'.format(nb_episodes))
 
-    for i in range(nb_episodes):
-        state = 0       # Init initial state of the agent
-        done = False    # Set done to False, is required to enter the loop
+    for _ in range(nb_episodes):
+        state = init_state()    # Init initial state of the agent (exploration)
+        done = False            # Is required to enter the loop
 
         # The Q-Table learning algorithm with discounted reward
         while not done:
-            # From curr_state, choose an action which maximises the reward
-            # When choosing, use decaying random noise for path exploration
-            action = np.argmax(
-                    Q[state, :] + 
-                    np.random.randn(1, len(Q[0])) / (i + 1)
-                )
+            # Choose an action which will maximise the state-action value func
+            action = np.argmax(Q[state, :])
 
             # Receive a feedback after taking a desired action with prob p
             new_state, reward, done = step(state, action, p, tms)
@@ -147,13 +149,13 @@ if __name__ == '__main__':
     assert len(tms) == 4
 
     # Set learning rate, alpha
-    alpha = .95
+    alpha = .99
 
     # Set discount reward factor, gamma
     gamma = .35
 
     # Set probability of performing the desired action
-    p = 0.5
+    p = 1
 
     # Set number of iterations
     nb_episodes = 10000
