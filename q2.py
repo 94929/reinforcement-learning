@@ -124,12 +124,19 @@ def learn(Q, tms, alpha, gamma, p, nb_episodes):
             # Receive a feedback after taking a desired action with prob p
             new_state, reward, done = step(state, action, p, tms)
 
+            # Copy Q to check the value differnece
+            prev_Q = np.copy(Q)
+
             # In stochastic world, we need not to rely on previous Q-Table
             # This can be done by adding the learning rate , alpha
             Q[state, action] = (
                     (1 - alpha) * Q[state, action] 
                     + alpha * (reward + gamma * np.max(Q[new_state, :]))
                 )
+            
+            # If there is no value change in Q
+            if np.allclose(prev_Q, Q, 1e-15):
+                return Q
 
             # Update state to the next one
             state = new_state
@@ -149,16 +156,16 @@ if __name__ == '__main__':
     assert len(tms) == 4
 
     # Set learning rate, alpha
-    alpha = .99
+    alpha = .95
 
     # Set discount reward factor, gamma
     gamma = .35
 
     # Set probability of performing the desired action
-    p = 1
+    p = .5
 
     # Set number of iterations
-    nb_episodes = 10000
+    nb_episodes = int(1e5)
 
     # Run the q-learning algorithm
     Q = learn(Q, tms, alpha, gamma, p, nb_episodes)
